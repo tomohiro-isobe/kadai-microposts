@@ -28,11 +28,19 @@ class AuthController extends Controller
      *
      * @return void
      */
+     
+     // 追加
+    protected $redirectTo = '/';
+    // 追加
+    protected $loginPath = '/login';
+     
     public function __construct()
     {
         $this->middleware('guest', ['except' => 'getLogout']);
+            
     }
-
+    
+            
     /**
      * Get a validator for an incoming registration request.
      *
