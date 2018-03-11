@@ -7,9 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use APP\User;
-
-class UsersController extends Controller
+class MicropostsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,11 +16,7 @@ class UsersController extends Controller
      */
     public function index()
     {
-        $users = User::paginate(10);
-        
-        return view('users.index', [
-            'users' => $users,
-        ]);
+        //
     }
 
     /**
@@ -43,7 +37,15 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request,[
+            'content' => 'required|max:255',
+            ]);
+            
+        $request->user()->microposts()->create([
+            'content' => $request->content,
+            ]);
+            
+        return redirect('/');
     }
 
     /**
@@ -54,17 +56,7 @@ class UsersController extends Controller
      */
     public function show($id)
     {
-        $user = User::find($id);
-        $microposts = $user->microposts()->orderBy('created_at', 'desc')->paginate(10);
-        
-        $data = [
-            'user' => $user,
-            'microposts' => $microposts,
-            ];
-            
-            $data += $this->counts($user);
-            
-            return view('users.show', $data);
+        //
     }
 
     /**
@@ -98,6 +90,12 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $micropost = \App\Micropost::find($id);
+        
+        if (\Auth::user()->id === $micropost->user_id) {
+            $micropost->delete();
+        }
+        
+        return redirect()->back();
     }
 }
