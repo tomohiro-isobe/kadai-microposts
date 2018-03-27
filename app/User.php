@@ -53,6 +53,11 @@ class User extends Model implements AuthenticatableContract,
         return $this->belongsToMany(User::class, 'user_follow', 'follow_id', 'user_id')->withTimestamps();
     }
     
+    public function favorites()
+    {
+        return $this->belongsToMany(Micropost::class, 'favorites', 'user_id', 'micropost_id')->withTimestamps();
+    }
+    
     public function follow($userId) { // 既にフォローしているかの確認
     
     $exist = $this->is_following($userId); //自分自身ではないかの確認
@@ -101,4 +106,49 @@ class User extends Model implements AuthenticatableContract,
         $follow_user_ids[] = $this->id;
         return Micropost::whereIn('user_id', $follow_user_ids);
     }
+    
+    
+    // お気に入りに追加、削除機能
+    public function is_favoriteing($micropostId) {
+        
+        return $this->favorites()->where('micropost_id', $micropostId)->exists();
+    }
+    
+    
+    public function favorite($micropostId) {
+        $exits = $this->is_favoriteing($micropostId);
+        
+        if ($exits) {
+            
+            return false;
+        } else {
+            
+            $this->favorites()->attach($micropostId);
+            
+            return true;
+        }
+    }
+    
+    public function unfavorite($micropostId) {
+        $exits = $this->is_favoriteing($micropostId);
+        
+        if ($exits) {
+            
+            $this->favorites()->detach($micropostId);
+            
+            return true;
+        } else {
+            
+            return false;
+        }
+    }
+    
+    //タイムライン表示
+    public function feed_favorites()
+    {
+        $favorite_user_ids = $this->favorites()->lists('microposts.id')->toArray();
+        
+        return Micropost::whereIn('user_id', $favorite_user_ids);
+    }
+    
 }
